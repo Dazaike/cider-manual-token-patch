@@ -1,0 +1,9 @@
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ Insert as a new sibling <activity> inside <application>, e.g. right
+@@ after the existing MainActivity's closing </activity> tag.
++    <activity
++        android:name="com.cidercollective.cider.auth.manual.ManualAppleTokenActivity"
++        android:exported="true"
++        android:theme="@android:style/Theme.DeviceDefault.Dialog.Alert"
++        android:excludeFromRecents="true" />
