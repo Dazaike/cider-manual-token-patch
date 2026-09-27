@@ -1,0 +1,10 @@
+# Local apktool decode/build output if you work in-place in this repo.
+cider_src/
+*_aligned.apk
+*_signed.apk
+*.apk
+*.idsig
+
+# OS/editor cruft.
+.DS_Store
+Thumbs.db

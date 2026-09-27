@@ -1,5 +1,7 @@
 # Cider Android — Manual Music-User-Token Sign-In Patch
 
+[![Release](https://img.shields.io/github/v/release/Dazaike/cider-manual-token-patch)](https://github.com/Dazaike/cider-manual-token-patch/releases/latest) [![Changelog](https://img.shields.io/badge/changelog-CHANGELOG.md-blue)](CHANGELOG.md)
+
 Cider ([ciderapp/Cider-2](https://github.com/ciderapp/Cider-2)) is an open-source
 Apple Music client. Its Android build's native "Sign in with Apple" flow goes
 through an in-app WebView OAuth handshake
