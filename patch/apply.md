@@ -58,12 +58,25 @@ accordingly before continuing.
 
 ## Verify
 
+Thanks to the `<intent-filter>` in the manifest patch, the dialog gets
+its own icon in the app drawer/home screen — labeled "Cider Manual
+Sign-In", using Cider's own launcher icon. Tap it directly, no computer
+needed after the initial install.
+
+To confirm it's wired up without tapping anything, from a computer:
+```
+adb shell cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER com.cidercollective.cider
+```
+should list `.auth.manual.ManualAppleTokenActivity` alongside `.MainActivity`.
+
+Or launch it directly the same way:
 ```
 adb shell am start -n com.cidercollective.cider/.auth.manual.ManualAppleTokenActivity
 ```
-should bring up the dialog directly (title "Sign in with Music-User-Token",
-an `EditText`, Cancel/Sign in buttons) without a crash — this alone
-confirms the manifest entry and new classes loaded correctly.
+Either way it should bring up the dialog (title "Sign in with
+Music-User-Token", an `EditText`, Cancel/Sign in buttons) without a
+crash — this alone confirms the manifest entry and new classes loaded
+correctly.
 
 Then paste a real `media-user-token` value (get it from your browser's
 devtools on an authenticated `music.apple.com` session, or from Cider

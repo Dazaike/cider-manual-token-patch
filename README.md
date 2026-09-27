@@ -45,6 +45,9 @@ your patched copy.
 - Adds `com.cidercollective.cider.auth.manual.ManualAppleTokenActivity`, a
   plain `android.app.Activity` (not Compose, not AppCompat — zero theme
   dependency) that shows an `AlertDialog` with an `EditText` for the token.
+  It's registered with a `MAIN`/`LAUNCHER` intent-filter, so it gets its
+  own icon in the app drawer/home screen (labeled "Cider Manual
+  Sign-In") — no computer/adb needed to launch it after the initial install.
 - On submit, it runs a small hand-written Kotlin-coroutine-shaped state
   machine (`SignInCoroutine`) on a background thread that:
   1. Calls the app's own **existing, unmodified** `AppleMusicApi.probeMusicUserToken(...)` to validate the pasted token against Apple's servers.

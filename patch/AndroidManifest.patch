@@ -6,4 +6,15 @@
 +        android:name="com.cidercollective.cider.auth.manual.ManualAppleTokenActivity"
 +        android:exported="true"
 +        android:theme="@android:style/Theme.DeviceDefault.Dialog.Alert"
-+        android:excludeFromRecents="true" />
++        android:excludeFromRecents="true"
++        android:label="Cider Manual Sign-In"
++        android:icon="@mipmap/ic_launcher">
++        <intent-filter>
++            <action android:name="android.intent.action.MAIN" />
++            <category android:name="android.intent.category.LAUNCHER" />
++        </intent-filter>
++    </activity>
+
+@@ The <intent-filter> gives the dialog its own home-screen/app-drawer
+@@ icon (labeled "Cider Manual Sign-In", using Cider's own launcher icon)
+@@ so it can be launched with a tap instead of requiring adb.
