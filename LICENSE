@@ -2,12 +2,19 @@ MIT License
 
 Copyright (c) 2026 the author of this repository
 
-This license covers only the newly-authored files in this repository
-(the smali sources under patch/smali/, the manifest patch, and the
-documentation). It does not grant any rights to, and does not apply to,
-Cider itself, which is a separate project under its own license
-(see https://github.com/ciderapp/Cider-2). This repository does not
-redistribute any Cider source code, assets, or compiled binaries.
+This license covers the newly-authored files in this repository: the
+smali sources under patch/smali/, the manifest patch, the documentation,
+and the Cider Patcher app under patcher/ (source, smali templates, build
+files, and app icon artwork). It does not cover:
+
+- Third-party libraries bundled into the Cider Patcher app, and the
+  Gradle Wrapper (patcher/gradlew, patcher/gradlew.bat,
+  patcher/gradle/wrapper/). Each is used under its own license; see
+  THIRD_PARTY_NOTICES.md.
+- Cider itself, which is a separate project under its own license
+  (see https://github.com/ciderapp/Cider-2). This repository does not
+  redistribute any Cider source code, assets, or compiled binaries, and
+  grants no rights to Cider.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the

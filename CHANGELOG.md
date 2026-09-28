@@ -4,6 +4,61 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.1] - 2026-09-28
+
+All changes below land in the `release: v1.0.1` commit; there were no
+intermediate commits since `v1.0.0`.
+
+### Added
+
+- **Cider Patcher** (`patcher/`), an Android app that applies the manual
+  Music-User-Token patch on the phone itself, with no PC:
+  - `:core` (Kotlin/JVM) re-derives every R8-obfuscated symbol from the
+    input APK's dex files (`SymbolResolver`, 14 anchor rules), renders the
+    smali templates in `core/src/main/resources/templates/`, assembles them
+    into an extra `classesN.dex` (smali), link-checks every reference
+    against the app (`LinkChecker`), adds the sign-in `<activity>` to the
+    binary manifest (ARSCLib), and v2/v3-signs the result (apksig). Builds
+    whose shape changed fail with a named symbol instead of producing a
+    broken APK. Tests: template golden test, resolver tests against
+    v1.0.93 and v1.0.80, and an end-to-end patch/verify test.
+  - The added activity has no launcher entry, uses a transparent theme,
+    takes the token via the `music_user_token` extra, and reports
+    `sign_in_result` (`invalid` / `unverified` / `RESULT_OK`) back to the
+    caller. Patcher-only template changes are `# BEGIN`/`# END` blocks;
+    stripping them reproduces the manual patch exactly.
+  - `:app`: patch the installed Cider (or, under **Advanced options**, a
+    chosen APK), install via Shizuku or the Android installer (one button,
+    chosen in settings), save the APK (advanced), sign in with a token and
+    see the outcome as a popup, including a dedicated "couldn't check"
+    explanation when Cider isn't signed in to its Cider/Taproom account.
+  - **Open Cider** button once the patched Cider is installed; **Revert to
+    original** reinstalls the unpatched APK saved at install time so
+    Cider's own updates can install again.
+  - Shizuku handling: permission requests that close without a result are
+    settled on resume; a red error when Shizuku isn't running or stops
+    mid-install.
+  - Optional **Saved keys** card: Cider license key and Music-User-Token
+    stored encrypted with an Android Keystore key, one-tap copy (flagged
+    sensitive), and **Use saved token** in the sign-in card.
+  - Animated step-by-step patching progress, inline sign-in spinner,
+    squircle shapes throughout, and a new app icon.
+- `THIRD_PARTY_NOTICES.md`: license texts and copyright notices for every
+  open-source library bundled into Cider Patcher (BSD-3-Clause, MIT,
+  Bouncy Castle, Apache-2.0) and for the Gradle Wrapper; attached to each
+  release alongside the APK.
+
+### Changed
+
+- `LICENSE`: the MIT grant now also covers the Cider Patcher app under
+  `patcher/`, and states that bundled third-party libraries and the Gradle
+  Wrapper keep their own licenses.
+- `README.md`: new "On-device patcher" section covering the patcher's
+  flow, the Cider account requirement, reverting for updates, and how to
+  build and test it.
+- `.gitignore`: ignores the patcher's Gradle build output and
+  `local.properties`.
+
 ## [1.0.0] - 2026-09-27
 
 Initial release.

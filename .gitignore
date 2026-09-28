@@ -8,3 +8,9 @@ cider_src/
 # OS/editor cruft.
 .DS_Store
 Thumbs.db
+
+# Patcher Gradle output.
+patcher/**/build/
+patcher/.gradle/
+patcher/.kotlin/
+patcher/local.properties
