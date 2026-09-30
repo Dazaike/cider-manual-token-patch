@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.2] - 2026-09-30
+
+All changes below land in the `release: v1.0.2` commit; there were no
+intermediate commits since `v1.0.1`.
+
+### Fixed
+
+- Patching Cider 1.0.97 failed with "Could not find runBlocking$default: 2 candidates
+  (expected 1)". R8 now emits two identical one-line bridges (`o89.c`, `w89.g`) that both
+  call the real `runBlocking`; `SymbolResolver` now picks the bridge in the same class as
+  the real method. Verified by resolving every symbol from a Cider 1.0.97 APK.
+
 ## [1.0.1] - 2026-09-28
 
 All changes below land in the `release: v1.0.1` commit; there were no

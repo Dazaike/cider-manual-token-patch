@@ -175,10 +175,14 @@ class SymbolResolver(private val index: DexIndex) {
             m.isStatic && m.params.size == 2 && m.params[1] == function2 && m.returnType == OBJECT &&
                 m.invokes("Ljava/lang/Thread;->currentThread()Ljava/lang/Thread;") &&
                 m.hasOpcodeOnType(Opcode.NEW_INSTANCE, "Ljava/lang/InterruptedException;")
-        }).descriptor
-        out["M_RUN_BLOCKING_DEFAULT"] = single("runBlocking\$default", index.methods.filter { m ->
-            sig(m, listOf(function2), OBJECT) && m.invokes(real)
-        }).descriptor
+        })
+        // R8 may emit identical $default bridges in several classes (Cider 1.0.97: two); any works,
+        // so prefer the one beside the real method.
+        val bridges = index.methods.filter { m ->
+            sig(m, listOf(function2), OBJECT) && m.invokes(real.descriptor)
+        }
+        val beside = bridges.filter { it.definingClass == real.definingClass }
+        out["M_RUN_BLOCKING_DEFAULT"] = single("runBlocking\$default", if (bridges.size > 1) beside else bridges).descriptor
     }
 
     // Rule 11.
