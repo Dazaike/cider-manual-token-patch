@@ -6,7 +6,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- Patching Cider 1.0.97 failed with "Could not find runBlocking$default: 2 candidates". The resolver now picks the bridge beside the real `runBlocking`.
+- Patching Cider beta 3 failed with "Could not find runBlocking$default: 2 candidates". The resolver now picks the bridge beside the real `runBlocking`.
 
 ## [1.0.1] - 2026-09-28
 
