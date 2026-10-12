@@ -82,12 +82,15 @@ loading.
   sign-in `<activity>` to the binary manifest (ARSCLib), and v2/v3-signs the
   result (apksig). A build whose shape changed fails with a named symbol
   instead of producing a broken APK.
-- `:app` (`com.dazaike.ciderpatcher`, "Cider Patcher"): tap **Use installed
-  Cider** (needs a non-split install), tap **Patch**, then **Install via
-  Shizuku**. **Choose APK**, **Save APK**, and the install method (Shizuku,
+- `:app` (`com.dazaike.ciderpatcher`, "Cider Patcher"): a guided home screen
+  (Patch → Install → Sign in) with one primary button pinned at the bottom.
+  Tap **Patch Cider** (needs a non-split install), then **Install via
+  Shizuku**. **Choose APK file**, **Save APK**, and the install method (Shizuku,
   or the Android installer with its confirmation dialogs) are behind
-  **Advanced options** in the settings menu (top right); only the chosen
-  method's install button is shown. After installing, tap **Open Cider**
+  **Advanced options** in Settings (gear, top right); only the chosen
+  method's install button is shown. The **Open Cider after install**
+  setting copies your saved license key and opens Cider after a Shizuku
+  install. After installing, open Cider
   and sign in to your Cider (Taproom) account: Cider needs it to fetch the
   Apple Music developer token, and without it every token check fails.
   Then type your Music-User-Token into the patcher and tap **Sign in to
@@ -96,10 +99,26 @@ loading.
   dialog and reports back, and the patcher shows the outcome in a popup:
   signed in, token rejected by Apple, or couldn't check (no Cider account
   sign-in, or offline). The token stays in memory unless you choose to keep
-  it: the optional **Saved keys** card stores your Cider license key and
+  it: the optional **Saved keys** sheet stores your Cider license key and
   Music-User-Token encrypted with an Android Keystore key, on this phone
   only, with one-tap copy (marked sensitive so the clipboard preview hides
-  it) and a **Use saved token** shortcut in the sign-in card.
+  it) and a **Use saved token** shortcut on the Sign in step.
+
+**Sid on Gemini (cloud).** Cider 1.0.129+ ships "Sid", a playlist assistant
+that needs Gemini Nano via Google AICore, which many phones lack. When the
+input has Sid, the patcher also hooks it (step **Hooking Sid**): a new first
+`classes.dex` holds modified copies of the Nano status/capability/generate
+classes (originals renamed to `name$cloudOrig`, original dexes shift to
+`classes2.dex`…), plus a small Java Gemini client (`core/src/cloudsid`,
+compiled and dexed by Gradle) appended as an extra dex. With a key set, Sid
+reports READY and every generate call goes to the Gemini REST API; with no key
+it behaves as stock. The **Sid** sheet takes a Google AI Studio
+API key and an optional model id (default `gemini-flash-latest`) and sends
+them to the patched activity (`sid_gemini_api_key`/`sid_gemini_model`
+extras). Cider keeps them in plaintext app-private storage; restart Cider
+afterwards. What you ask Sid is sent to Google. If Sid's internals can't be
+matched, the step is skipped (shown after patching) and the token patch is
+unaffected.
 
 Differences from the manual patch in `patch/`: the patcher's activity has no
 label, icon, or launcher `intent-filter` (so there's no extra app-drawer
@@ -117,8 +136,8 @@ needs an uninstall (the app prompts for it, and it wipes Cider's data).
 
 When a patched build installs, the patcher keeps the unpatched APK it was
 made from. Cider's own updates are signed by its developers and can't
-install over the patched app, so the **Cider updates** card offers **Revert
-to original**: it uninstalls the patched Cider and reinstalls that saved
+install over the patched app, so **More → Revert to original Cider** (shown
+once a patched build is installed) uninstalls the patched Cider and reinstalls that saved
 original (wiping Cider's data). Update Cider normally, then patch the new
 version.
 

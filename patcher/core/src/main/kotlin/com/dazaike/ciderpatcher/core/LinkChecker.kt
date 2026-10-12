@@ -36,7 +36,7 @@ object LinkChecker {
 
     private fun checkType(rawType: String, app: DexIndex) {
         val type = rawType.trimStart('[')
-        if (!type.startsWith("L") || type.startsWith(PATCH_PACKAGE_PREFIX)) return
+        if (!type.startsWith("L") || isPatchType(type)) return
         if (type in app.classes) return
         if (PLATFORM_PREFIXES.none { type.startsWith(it) }) missing(type)
     }
@@ -44,7 +44,7 @@ object LinkChecker {
     private fun checkField(ref: FieldReference, app: DexIndex) {
         checkType(ref.type, app)
         val owner = ref.definingClass
-        if (owner.startsWith(PATCH_PACKAGE_PREFIX)) return
+        if (isPatchType(owner)) return
         if (owner !in app.classes) return checkType(owner, app)
         val found = hierarchy(owner, app).any { c -> c.fields.any { it.name == ref.name && it.type == ref.type } }
         if (!found) missing(fieldDescriptor(ref))
@@ -54,8 +54,10 @@ object LinkChecker {
         ref.parameterTypes.forEach { checkType(it.toString(), app) }
         checkType(ref.returnType, app)
         val owner = ref.definingClass
-        if (owner.startsWith(PATCH_PACKAGE_PREFIX)) return
+        if (isPatchType(owner)) return
         if (owner !in app.classes) return checkType(owner, app)
+        // Renamed originals added by DexHooker; they don't exist in the app index.
+        if (ref.name.endsWith(DexHooker.ORIG_SUFFIX)) return
         val key = signature(ref)
         val found = hierarchy(owner, app).any { c -> c.methods.any { signature(it) == key } }
         if (!found) missing(methodDescriptor(ref))

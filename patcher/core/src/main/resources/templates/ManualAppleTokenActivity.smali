@@ -27,6 +27,42 @@
 
     invoke-virtual {v0, p0}, {{M_ENSURE_INITIALIZED}}
 
+    # BEGIN sid-config-extra
+    invoke-virtual {p0}, Landroid/app/Activity;->getIntent()Landroid/content/Intent;
+
+    move-result-object v1
+
+    const-string v2, "sid_gemini_api_key"
+
+    invoke-virtual {v1, v2}, Landroid/content/Intent;->hasExtra(Ljava/lang/String;)Z
+
+    move-result v3
+
+    if-eqz v3, :no_sid_config
+
+    invoke-virtual {v1, v2}, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v2
+
+    const-string v3, "sid_gemini_model"
+
+    invoke-virtual {v1, v3}, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
+
+    move-result-object v3
+
+    invoke-static {p0, v2, v3}, Lcom/cidercollective/cider/sidcloud/CloudSid;->saveConfig(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)V
+
+    const/4 v2, -0x1
+
+    invoke-virtual {p0, v2}, Landroid/app/Activity;->setResult(I)V
+
+    invoke-virtual {p0}, Landroid/app/Activity;->finish()V
+
+    return-void
+
+    :no_sid_config
+    # END sid-config-extra
+
     # BEGIN token-extra
     invoke-virtual {p0}, Landroid/app/Activity;->getIntent()Landroid/content/Intent;
 

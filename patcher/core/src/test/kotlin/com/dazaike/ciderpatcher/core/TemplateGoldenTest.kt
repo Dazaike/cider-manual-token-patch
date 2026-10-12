@@ -58,6 +58,9 @@ class TemplateGoldenTest {
         for (file in TemplateRenderer.TEMPLATE_FILES) {
             assertFalse(file, TemplateRenderer.loadTemplate(file).contains("Lc/"))
         }
+        for (file in TemplateRenderer.SID_TEMPLATE_FILES) {
+            assertFalse(file, TemplateRenderer.loadTemplate("sid/$file").contains("Lc/"))
+        }
     }
 
     @Test(expected = PatchException::class)

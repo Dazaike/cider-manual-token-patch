@@ -2,6 +2,23 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.3] - 2026-10-12
+
+### Added
+
+- **Sid (cloud Gemini)**: on Cider builds that have Sid (1.0.129+), the patcher hooks Sid so it can run on Gemini over a Google AI Studio API key instead of on-device Gemini Nano. Sid then works on phones without Nano. The key and model id are entered in the new **Sid** sheet and sent to the patched Cider; with no key, Sid behaves as stock.
+- New **Hooking Sid to the cloud** patch step. Builds without Sid, or where Sid's internals can't be matched, skip it and still get the token patch ("Sid cloud: skipped" is shown).
+- The key is stored in plaintext in the patched Cider's private storage; what you ask Sid is sent to Google.
+- **Open Cider after install** setting (off by default): after a Shizuku install, copies your saved license key (marked sensitive) and opens Cider.
+- Accent colour and haptics settings.
+
+### Changed
+
+- **Patcher UI fully redesigned** as a guided journey in a liquid-glass dark style: one home screen with a Patch → Install → Sign in progress rail and a single primary action pinned at the bottom. Sid, Saved keys, Revert and Settings are secondary sheets and rows. Status messages are now toasts. Material 3 is gone from the app.
+- **One-tap patching**: "Patch Cider" copies and patches the installed Cider in one step. "Choose APK file" is offered on the home screen when Cider isn't installed, and otherwise stays under Advanced options.
+- After a successful install the home screen moves to the Sign in step; a successful sign-in shows "You're signed in".
+- Build toolchain updated to Gradle 9.3.1, AGP 9.1.1, Kotlin 2.4.20, Compose 1.12.1.
+
 ## [1.0.2] - 2026-09-30
 
 ### Fixed

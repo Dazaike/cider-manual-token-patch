@@ -16,8 +16,10 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.util.ReferenceUtil
 import java.util.zip.ZipFile
 
-/** Package of the classes this patch adds; excluded from the index so patched inputs resolve like stock ones. */
-const val PATCH_PACKAGE_PREFIX = "Lcom/cidercollective/cider/auth/manual/"
+/** Packages of the classes this patch adds; excluded from the index so patched inputs resolve like stock ones. */
+val PATCH_PACKAGE_PREFIXES = listOf("Lcom/cidercollective/cider/auth/manual/", "Lcom/cidercollective/cider/sidcloud/")
+
+fun isPatchType(type: String): Boolean = PATCH_PACKAGE_PREFIXES.any { type.startsWith(it) }
 
 fun methodDescriptor(ref: MethodReference): String = ReferenceUtil.getMethodDescriptor(ref)
 fun fieldDescriptor(ref: FieldReference): String = ReferenceUtil.getFieldDescriptor(ref)
@@ -64,7 +66,7 @@ class DexIndex(dexFiles: List<DexBackedDexFile>) {
     init {
         val classMap = LinkedHashMap<String, ClassDef>()
         for (dex in dexFiles) for (cls in dex.classes) {
-            if (cls.type.startsWith(PATCH_PACKAGE_PREFIX)) continue
+            if (isPatchType(cls.type)) continue
             classMap.putIfAbsent(cls.type, cls)
         }
         classes = classMap

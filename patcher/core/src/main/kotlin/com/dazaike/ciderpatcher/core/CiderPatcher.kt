@@ -21,12 +21,25 @@ object CiderPatcher {
     const val RESULT_INVALID = "invalid"
     const val RESULT_UNVERIFIED = "unverified"
 
+    /** Must match the const-strings in the ManualAppleTokenActivity template's sid-config-extra block. */
+    const val SID_API_KEY_EXTRA = "sid_gemini_api_key"
+    const val SID_MODEL_EXTRA = "sid_gemini_model"
+    const val SID_LOG_APPLIED = "Sid cloud: applied"
+    const val SID_LOG_SKIPPED_PREFIX = "Sid cloud: skipped"
+
+    /** English-only copy tweak: Sid's intro claimed everything stays on the phone. Skipped when the text isn't found. */
+    private val SID_FOOTNOTE = Pair(
+        "What you type never leaves this phone: I think with Gemini Nano, right here. I only ask Apple Music about songs, and nothing in your library changes until you tap Done or Create playlist.",
+        "What you type stays between you and my model: Gemini Nano on this phone, or Gemini in the cloud when you've added an API key. I only ask Apple Music about songs, and nothing in your library changes until you tap Done or Create playlist.",
+    )
+
     private const val PATCH_ACTIVITY_TYPE = "Lcom/cidercollective/cider/auth/manual/ManualAppleTokenActivity;"
 
     enum class Step(val label: String) {
         READ("Reading APK…"),
         RESOLVE("Resolving symbols…"),
         ASSEMBLE("Assembling patch classes…"),
+        HOOK("Hooking Sid…"),
         CHECK("Checking references…"),
         WRITE("Writing APK…"),
         SIGN("Signing…"),
@@ -63,15 +76,37 @@ object CiderPatcher {
             val index = DexIndex(dexFiles)
             val symbols = SymbolResolver(index).resolve()
             for ((k, v) in symbols.values) log("$k → $v")
+            // A Sid failure must never abort the token patch.
+            val sid = try {
+                SidResolver(index, symbols).resolve()
+                    ?: null.also { log("$SID_LOG_SKIPPED_PREFIX (this Cider build has no Sid)") }
+            } catch (e: PatchException) {
+                log("$SID_LOG_SKIPPED_PREFIX (${e.message})")
+                null
+            }
+            if (sid != null) for ((k, v) in sid.values) log("$k → $v")
 
             step(Step.ASSEMBLE)
             val newDex = DexAssembler.assemble(TemplateRenderer.render(symbols))
+            val cloudDex = CiderPatcher::class.java.getResourceAsStream("/cloudsid/classes.dex")?.use { it.readBytes() }
+                ?: throw PatchException("Missing cloud client dex")
+
+            step(Step.HOOK)
+            val frontDex = if (sid == null) null else try {
+                val stubDex = DexAssembler.assemble(TemplateRenderer.renderSid(sid.values))
+                val stubs = DexBackedDexFile(Opcodes.getDefault(), stubDex)
+                LinkChecker.check(stubs, index)
+                DexHooker.build(index, sid.hooks, stubs, SID_FOOTNOTE).also { log(SID_LOG_APPLIED) }
+            } catch (e: PatchException) {
+                log("$SID_LOG_SKIPPED_PREFIX (${e.message})")
+                null
+            }
 
             step(Step.CHECK)
             LinkChecker.check(DexBackedDexFile(Opcodes.getDefault(), newDex), index)
 
             step(Step.WRITE)
-            ApkWriter.writeUnsigned(input, unsigned, manifest, newDex)
+            ApkWriter.writeUnsigned(input, unsigned, manifest, frontDex, listOf(newDex, cloudDex))
 
             step(Step.SIGN)
             ApkSigning.sign(unsigned, output, key)

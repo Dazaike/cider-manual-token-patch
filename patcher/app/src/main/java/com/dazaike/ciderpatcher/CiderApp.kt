@@ -41,6 +41,15 @@ object CiderApp {
         .setClassName(CiderPatcher.TARGET_PACKAGE, CiderPatcher.PATCH_ACTIVITY)
         .putExtra(CiderPatcher.TOKEN_EXTRA, token.trim())
 
+    /**
+     * Intent that hands the Gemini key and model to the patched Cider's cloud Sid; start it for a result like
+     * [signInIntent]. The activity stores them and finishes with RESULT_OK. A blank [apiKey] turns cloud Sid off.
+     */
+    fun sidConfigIntent(apiKey: String, model: String): Intent = Intent()
+        .setClassName(CiderPatcher.TARGET_PACKAGE, CiderPatcher.PATCH_ACTIVITY)
+        .putExtra(CiderPatcher.SID_API_KEY_EXTRA, apiKey.trim())
+        .putExtra(CiderPatcher.SID_MODEL_EXTRA, model.trim())
+
     /** Cider's normal launcher intent, or null if Cider isn't installed. */
     fun launchIntent(context: Context): Intent? =
         context.packageManager.getLaunchIntentForPackage(CiderPatcher.TARGET_PACKAGE)

@@ -17,6 +17,8 @@ import javax.crypto.spec.GCMParameterSpec
 object SecretStore {
     const val LICENSE_KEY = "license_key"
     const val MUSIC_USER_TOKEN = "music_user_token"
+    const val GEMINI_API_KEY = "gemini_api_key"
+    const val GEMINI_MODEL = "gemini_model"
 
     private const val KEYSTORE = "AndroidKeyStore"
     private const val ALIAS = "cider-patcher-secrets"

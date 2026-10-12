@@ -1,98 +1,46 @@
 package com.dazaike.ciderpatcher
 
 import android.content.ActivityNotFoundException
-import android.content.ClipData
-import android.content.ClipDescription
-import android.content.ClipboardManager
-import android.content.Context
-import android.os.PersistableBundle
-import androidx.compose.animation.scaleOut
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Password
-import androidx.compose.material.icons.rounded.Visibility
-import androidx.compose.material.icons.rounded.VisibilityOff
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.VisualTransformation
-import com.dazaike.ciderpatcher.ui.SquircleIconButton
-import kotlinx.coroutines.delay
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Login
-import androidx.compose.material.icons.automirrored.rounded.OpenInNew
-import androidx.compose.material.icons.rounded.AutoFixHigh
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.Description
-import androidx.compose.material.icons.rounded.ErrorOutline
-import androidx.compose.material.icons.rounded.ExpandMore
-import androidx.compose.material.icons.rounded.FolderOpen
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.InstallMobile
-import androidx.compose.material.icons.rounded.Key
-import androidx.compose.material.icons.rounded.PhoneAndroid
-import androidx.compose.material.icons.rounded.Restore
-import androidx.compose.material.icons.rounded.Save
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.Tune
-import androidx.compose.material.icons.rounded.Warning
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -100,27 +48,71 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dazaike.ciderpatcher.core.CiderPatcher
-import com.dazaike.ciderpatcher.ui.ButtonStyle
+import com.dazaike.ciderpatcher.ui.AccentPicker
+import com.dazaike.ciderpatcher.ui.ButtonSize
+import com.dazaike.ciderpatcher.ui.ButtonVariant
+import com.dazaike.ciderpatcher.ui.ConfirmDialog
+import com.dazaike.ciderpatcher.ui.GhostRow
+import com.dazaike.ciderpatcher.ui.GlassButton
+import com.dazaike.ciderpatcher.ui.GlassIconButton
+import com.dazaike.ciderpatcher.ui.GlassPasswordField
+import com.dazaike.ciderpatcher.ui.GlassSegmented
+import com.dazaike.ciderpatcher.ui.GlassSwitch
+import com.dazaike.ciderpatcher.ui.GlassTextField
+import com.dazaike.ciderpatcher.ui.HapticKind
+import com.dazaike.ciderpatcher.ui.JourneyRail
+import com.dazaike.ciderpatcher.ui.LocalHaptics
+import com.dazaike.ciderpatcher.ui.LocalToasts
 import com.dazaike.ciderpatcher.ui.PatchProgress
-import com.dazaike.ciderpatcher.ui.PillSquircle
-import com.dazaike.ciderpatcher.ui.SectionCard
-import com.dazaike.ciderpatcher.ui.SquircleButton
-import com.dazaike.ciderpatcher.ui.SquircleShape
-import com.dazaike.ciderpatcher.ui.SuccessBurst
-import com.dazaike.ciderpatcher.ui.shake
+import com.dazaike.ciderpatcher.ui.PrismIcon
+import com.dazaike.ciderpatcher.ui.PrismIcons
+import com.dazaike.ciderpatcher.ui.SecretField
+import com.dazaike.ciderpatcher.ui.SectionLabel
+import com.dazaike.ciderpatcher.ui.SheetOverlay
+import com.dazaike.ciderpatcher.ui.ToastKind
+import com.dazaike.ciderpatcher.ui.TooltipBox
+import com.dazaike.ciderpatcher.ui.rememberSyncedFieldState
+import com.dazaike.ciderpatcher.ui.theme.LocalMotion
+import com.dazaike.ciderpatcher.ui.theme.Prism
+import com.dazaike.ciderpatcher.ui.theme.PrismText
+import com.dazaike.ciderpatcher.ui.theme.accentAlpha
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.shapes.RoundedRectangle
 
 private val APK_MIME_TYPES = arrayOf("application/vnd.android.package-archive", "application/octet-stream")
+
+private enum class Stage { PATCH, INSTALL, SIGN_IN }
+
+private enum class Hero { NEEDS_APK, PATCH, READY, PATCHING, FAILED, INSTALL, SIGN_IN, SIGNED_IN }
+
+private fun stageOf(state: PatchState, patched: Boolean): Stage = when {
+    state is PatchState.Done -> Stage.INSTALL
+    state is PatchState.Idle && patched -> Stage.SIGN_IN
+    else -> Stage.PATCH
+}
+
+private fun heroOf(state: PatchState, patched: Boolean, signedIn: Boolean, ciderInstalled: Boolean): Hero = when (state) {
+    is PatchState.Patching -> Hero.PATCHING
+    is PatchState.Failed -> Hero.FAILED
+    is PatchState.Ready -> Hero.READY
+    is PatchState.Done -> Hero.INSTALL
+    PatchState.Idle -> when {
+        patched -> if (signedIn) Hero.SIGNED_IN else Hero.SIGN_IN
+        ciderInstalled -> Hero.PATCH
+        else -> Hero.NEEDS_APK
+    }
+}
 
 @Composable
 fun PatchScreen(vm: PatchViewModel) {
@@ -143,683 +135,654 @@ fun PatchScreen(vm: PatchViewModel) {
             vm.onSignInLaunchFailed()
         }
     }
+    val sidConfig = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        vm.onSidConfigResult(result.resultCode)
+    }
+    LaunchedEffect(vm.sidConfigRequest) {
+        val (key, model) = vm.sidConfigRequest ?: return@LaunchedEffect
+        vm.sidConfigLaunched()
+        try {
+            sidConfig.launch(CiderApp.sidConfigIntent(key, model))
+        } catch (_: ActivityNotFoundException) {
+            vm.onSidConfigLaunchFailed()
+        }
+    }
     val working = state is PatchState.Patching || vm.busy
 
-    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
-        Column(
-            Modifier
-                .safeDrawingPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            EnterFromTop(0) {
-                Header(
-                    advanced = vm.advanced,
-                    onAdvancedChange = vm::updateAdvanced,
-                    installMethod = vm.installMethod,
-                    onInstallMethodChange = vm::updateInstallMethod,
-                )
-            }
+    val colors = Prism.colors
+    val motion = LocalMotion.current
+    val toasts = LocalToasts.current
+    val haptics = LocalHaptics.current
 
-            EnterFromTop(1) {
-                AnimatedVisibility(
-                    visible = vm.message != null,
-                    enter = expandVertically(spring(dampingRatio = 0.8f)) + fadeIn(),
-                    exit = shrinkVertically() + fadeOut(),
-                ) {
-                    StatusBanner(vm.message.orEmpty(), vm.busy, vm.messageIsError)
-                }
-            }
+    var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showSid by rememberSaveable { mutableStateOf(false) }
+    var showKeys by rememberSaveable { mutableStateOf(false) }
 
-            EnterFromTop(2) {
-                SectionCard(1, "Choose Cider") {
-                    @OptIn(ExperimentalLayoutApi::class)
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        SquircleButton(
-                            "Use installed Cider",
-                            onClick = vm::useInstalledCider,
-                            icon = Icons.Rounded.PhoneAndroid,
-                            enabled = vm.ciderInstalled && !working,
-                        )
-                        AnimatedVisibility(vm.advanced, enter = scaleIn(spring(dampingRatio = 0.5f)) + fadeIn(), exit = fadeOut()) {
-                            SquircleButton(
-                                "Choose APK",
-                                onClick = { pickApk.launch(APK_MIME_TYPES) },
-                                icon = Icons.Rounded.FolderOpen,
-                                style = ButtonStyle.Tonal,
-                                enabled = !working,
-                            )
-                        }
-                    }
-                    AnimatedVisibility(!vm.ciderInstalled && !vm.advanced) {
-                        Hint(
-                            Icons.Rounded.Info,
-                            "Install Cider first, or turn on Advanced options (top right) to choose an APK file.",
-                        )
-                    }
-                }
-            }
+    val stage = stageOf(state, vm.patchedActivityExists)
+    val hero = heroOf(state, vm.patchedActivityExists, vm.signedIn, vm.ciderInstalled)
 
-            EnterFromTop(3) {
-                SectionCard(2, "Patch") {
-                    AnimatedContent(
-                        targetState = state,
-                        contentKey = { it::class },
-                        transitionSpec = {
-                            (fadeIn(tween(260, delayMillis = 80)) + slideInVertically(spring(dampingRatio = 0.8f)) { it / 6 }) togetherWith
-                                fadeOut(tween(140))
-                        },
-                        label = "patchState",
-                    ) { s ->
-                        PatchSection(
-                            state = s,
-                            working = working,
-                            advanced = vm.advanced,
-                            signerMismatch = vm.signerMismatch,
-                            installMethod = vm.installMethod,
-                            shizukuRunning = vm.shizukuRunning,
-                            onPatch = vm::patch,
-                            onSave = { saveApk.launch(vm.suggestedFileName) },
-                            onInstall = vm::install,
-                        )
-                    }
-                }
-            }
-
-            EnterFromTop(4) {
-                SectionCard(3, "Sign in to Cider") {
-                    AnimatedVisibility(
-                        visible = vm.patchedActivityExists,
-                        enter = expandVertically(spring(dampingRatio = 0.7f)) + scaleIn(initialScale = 0.8f) + fadeIn(),
-                        exit = shrinkVertically() + fadeOut(),
-                    ) {
-                        SquircleButton(
-                            "Open Cider",
-                            onClick = { vm.openCider() },
-                            icon = Icons.AutoMirrored.Rounded.OpenInNew,
-                            style = ButtonStyle.Tonal,
-                        )
-                    }
-                    Hint(
-                        Icons.Rounded.Info,
-                        "Open Cider once and sign in to your Cider account first. Cider needs it to check your token with Apple.",
-                    )
-                    OutlinedTextField(
-                        value = vm.token,
-                        onValueChange = { vm.token = it },
-                        label = { Text("Music-User-Token") },
-                        leadingIcon = { Icon(Icons.Rounded.Key, null) },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    AnimatedVisibility(
-                        visible = vm.savedToken != null && vm.token != vm.savedToken,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut(),
-                    ) {
-                        SquircleButton(
-                            "Use saved token",
-                            onClick = vm::useSavedToken,
-                            icon = Icons.Rounded.Password,
-                            style = ButtonStyle.Tonal,
-                        )
-                    }
-                    SquircleButton(
-                        if (vm.signingIn) "Signing in…" else "Sign in to Cider",
-                        onClick = vm::signIn,
-                        icon = Icons.AutoMirrored.Rounded.Login,
-                        enabled = vm.signingIn || (vm.token.isNotBlank() && vm.patchedActivityExists && !vm.busy),
-                        loading = vm.signingIn,
-                    )
-                    AnimatedVisibility(!vm.patchedActivityExists) {
-                        Text(
-                            "Install a patched Cider first.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-
-            AnimatedVisibility(
-                visible = vm.originalLabel != null && vm.patchedActivityExists,
-                enter = expandVertically(spring(dampingRatio = 0.8f)) + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
-            ) {
-                SectionCard(4, "Cider updates") {
-                    Hint(
-                        Icons.Rounded.Info,
-                        "Cider's updates are signed by its developers, so they can't install over the patched app. " +
-                            "Revert to the original first, update Cider, then patch it again here.",
-                    )
-                    Text(
-                        "Saved original: ${vm.originalLabel.orEmpty()}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    SquircleButton(
-                        "Revert to original",
-                        onClick = vm::requestRevert,
-                        icon = Icons.Rounded.Restore,
-                        style = ButtonStyle.Outlined,
-                        enabled = !vm.busy && !vm.signingIn,
-                        loading = vm.reverting,
-                    )
-                }
-            }
-
-            EnterFromTop(5) {
-                SavedKeysCard(
-                    savedLicense = vm.savedLicenseKey,
-                    savedToken = vm.savedToken,
-                    onSave = vm::saveKeys,
-                )
-            }
-            Spacer(Modifier.height(24.dp))
-        }
-    }
-
-    if (vm.confirmRevert) {
-        AlertDialog(
-            onDismissRequest = vm::dismissRevert,
-            icon = { Icon(Icons.Rounded.Restore, null) },
-            title = { Text("Revert to original Cider?") },
-            text = {
-                Text(
-                    "This uninstalls the patched Cider and reinstalls ${vm.originalLabel.orEmpty()}. " +
-                        "Cider's data is deleted, so you'll sign in again afterwards."
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = vm::confirmRevertAndInstall, shape = PillSquircle) { Text("Revert") }
-            },
-            dismissButton = { TextButton(onClick = vm::dismissRevert, shape = PillSquircle) { Text("Cancel") } },
+    // Messages are shown as toasts once the work behind them is finished. Long instructions need longer to read.
+    LaunchedEffect(vm.message, vm.messageIsError, vm.busy) {
+        val m = vm.message ?: return@LaunchedEffect
+        if (vm.busy) return@LaunchedEffect
+        toasts.show(
+            m,
+            if (vm.messageIsError) ToastKind.Error else ToastKind.Info,
+            durationMs = (2500L + m.length * 45L).coerceAtMost(9000L),
         )
+        vm.consumeMessage()
     }
-
-    if (vm.confirmUninstall) {
-        AlertDialog(
-            onDismissRequest = vm::dismissUninstall,
-            icon = { Icon(Icons.Rounded.Warning, null) },
-            title = { Text("Replace installed Cider?") },
-            text = {
-                Text(
-                    "Installed Cider is signed with a different key. It must be uninstalled first — " +
-                        "this deletes its data and you'll sign in with your token again." +
-                        if (vm.installMethod == InstallMethod.SYSTEM) {
-                            "\n\nAndroid will ask you to confirm the uninstall, then the install."
-                        } else {
-                            ""
-                        }
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = vm::confirmUninstallAndInstall, shape = PillSquircle) { Text("Uninstall & install") }
-            },
-            dismissButton = { TextButton(onClick = vm::dismissUninstall, shape = PillSquircle) { Text("Cancel") } },
-        )
-    }
-
-    vm.signInOutcome?.let { outcome ->
-        SignInOutcomeDialog(outcome, onOpenCider = { vm.openCider() }, onDismiss = vm::dismissSignInOutcome)
-    }
-}
-
-@Composable
-private fun PatchSection(
-    state: PatchState,
-    working: Boolean,
-    advanced: Boolean,
-    signerMismatch: Boolean,
-    installMethod: InstallMethod,
-    shizukuRunning: Boolean,
-    onPatch: () -> Unit,
-    onSave: () -> Unit,
-    onInstall: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        when (state) {
-            PatchState.Idle -> Hint(Icons.Rounded.Info, "Choose Cider above to get started.")
-            is PatchState.Ready -> {
-                Hint(Icons.Rounded.Description, state.label)
-                SquircleButton("Patch", onClick = onPatch, icon = Icons.Rounded.AutoFixHigh)
-            }
-            is PatchState.Patching -> PatchProgress(state.step, state.symbols)
-            is PatchState.Done -> {
-                SuccessBurst()
-                Text(
-                    "Patched APK ready",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                )
-                @OptIn(ExperimentalLayoutApi::class)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    SquircleButton(
-                        if (installMethod == InstallMethod.SHIZUKU) "Install via Shizuku" else "Install",
-                        onClick = onInstall,
-                        icon = Icons.Rounded.InstallMobile,
-                        enabled = !working,
-                    )
-                    AnimatedVisibility(advanced, enter = scaleIn(spring(dampingRatio = 0.5f)) + fadeIn(), exit = fadeOut()) {
-                        SquircleButton(
-                            "Save APK",
-                            onClick = onSave,
-                            icon = Icons.Rounded.Save,
-                            style = ButtonStyle.Outlined,
-                            enabled = !working,
-                        )
-                    }
-                }
-                AnimatedVisibility(
-                    visible = installMethod == InstallMethod.SHIZUKU && !shizukuRunning,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut(),
-                ) {
-                    ErrorHint(ShizukuInstaller.NOT_RUNNING)
-                }
-                AnimatedVisibility(advanced && signerMismatch) {
-                    Hint(Icons.Rounded.Warning, "Uninstall the current Cider before installing a saved copy of this file.")
-                }
-                LogDetails(state.log)
-            }
-            is PatchState.Failed -> {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .shake(state.message)
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(MaterialTheme.colorScheme.errorContainer)
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Rounded.ErrorOutline, null, tint = MaterialTheme.colorScheme.onErrorContainer)
-                    Spacer(Modifier.width(12.dp))
-                    Text(state.message, color = MaterialTheme.colorScheme.onErrorContainer)
-                }
-                if (state.log.isNotEmpty()) LogDetails(state.log)
-            }
+    LaunchedEffect(hero) {
+        when (hero) {
+            Hero.INSTALL -> haptics.perform(HapticKind.Success)
+            Hero.FAILED -> haptics.perform(HapticKind.Error)
+            else -> Unit
         }
     }
-}
-
-@Composable
-private fun Header(
-    advanced: Boolean,
-    onAdvancedChange: (Boolean) -> Unit,
-    installMethod: InstallMethod,
-    onInstallMethodChange: (InstallMethod) -> Unit,
-) {
-    var menuOpen by remember { mutableStateOf(false) }
-    val gear by animateFloatAsState(if (menuOpen) 90f else 0f, spring(dampingRatio = 0.5f), label = "settingsGear")
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text("Cider Patcher", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text(
-                "Adds token sign-in to Cider, right on your phone.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Box {
-            Surface(
-                onClick = { menuOpen = true },
-                shape = SquircleShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                modifier = Modifier.size(48.dp),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.Settings, contentDescription = "Settings", modifier = Modifier.rotate(gear))
-                }
-            }
-            DropdownMenu(
-                expanded = menuOpen,
-                onDismissRequest = { menuOpen = false },
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                DropdownMenuItem(
-                    text = {
-                        Column {
-                            Text("Advanced options")
-                            Text(
-                                "Choose an APK file and save the patched APK",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    },
-                    onClick = { onAdvancedChange(!advanced) },
-                    leadingIcon = { Icon(Icons.Rounded.Tune, null) },
-                    trailingIcon = { Switch(checked = advanced, onCheckedChange = onAdvancedChange) },
-                )
-                if (advanced) {
-                    HorizontalDivider(Modifier.padding(vertical = 4.dp))
-                    Text(
-                        "Install with",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                    )
-                    InstallMethodItem(
-                        title = "Shizuku",
-                        subtitle = "Installs silently, no prompts",
-                        selected = installMethod == InstallMethod.SHIZUKU,
-                        onClick = { onInstallMethodChange(InstallMethod.SHIZUKU) },
-                    )
-                    InstallMethodItem(
-                        title = "Android installer",
-                        subtitle = "Asks you to confirm, like opening an APK file",
-                        selected = installMethod == InstallMethod.SYSTEM,
-                        onClick = { onInstallMethodChange(InstallMethod.SYSTEM) },
-                    )
-                }
-            }
-        }
+    LaunchedEffect(vm.signInOutcome) {
+        if (vm.signInOutcome == SignInOutcome.SUCCESS) haptics.perform(HapticKind.Success)
     }
-}
 
-@Composable
-private fun InstallMethodItem(title: String, subtitle: String, selected: Boolean, onClick: () -> Unit) {
-    DropdownMenuItem(
-        text = {
-            Column {
-                Text(title)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        },
-        onClick = onClick,
-        leadingIcon = { RadioButton(selected = selected, onClick = onClick) },
-    )
-}
+    // pageBackdrop = flat decorative background only (what page glass refracts).
+    // sheetBackdrop = the whole screen (what sheets refract).
+    val pageBackdrop = rememberLayerBackdrop()
+    val sheetBackdrop = rememberLayerBackdrop()
 
-@Composable
-private fun StatusBanner(message: String, busy: Boolean, error: Boolean) {
-    val container = if (error) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer
-    val content = if (error) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .shake(if (error) message else null)
-            .clip(MaterialTheme.shapes.medium)
-            .background(container)
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        AnimatedContent(
-            targetState = message,
-            transitionSpec = { (slideInVertically { it / 2 } + fadeIn()) togetherWith (slideOutVertically { -it / 2 } + fadeOut()) },
-            label = "statusMessage",
-        ) { text ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (error) {
-                    Icon(Icons.Rounded.ErrorOutline, null, tint = content)
-                    Spacer(Modifier.width(12.dp))
-                }
-                Text(text, color = content)
-            }
-        }
-        AnimatedVisibility(busy) {
-            LinearProgressIndicator(
+    Box(Modifier.fillMaxSize().background(Prism.background)) {
+        Box(Modifier.fillMaxSize().layerBackdrop(sheetBackdrop)) {
+            Box(
                 Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(PillSquircle),
+                    .fillMaxSize()
+                    .layerBackdrop(pageBackdrop)
+                    .background(colors.background),
+            )
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.systemBars)
+                    .imePadding()
+                    .padding(horizontal = 16.dp),
+            ) {
+                Row(Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
+                    PrismText(
+                        "Cider Patcher",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f),
+                    )
+                    TooltipBox("Settings") {
+                        GlassIconButton(pageBackdrop, PrismIcons.Settings, "Settings", { showSettings = true })
+                    }
+                }
+                JourneyRail(current = stage.ordinal, allDone = hero == Hero.SIGNED_IN)
+                Spacer(Modifier.height(20.dp))
+
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                    AnimatedContent(
+                        targetState = hero,
+                        transitionSpec = {
+                            fadeIn(motion.fade(220, delayMs = 60)) togetherWith fadeOut(motion.fade(120)) using
+                                SizeTransform(clip = false) { _, _ -> motion.settle() }
+                        },
+                        label = "hero",
+                    ) { h ->
+                        HeroBlock(h, state, vm, pageBackdrop)
+                    }
+                    if (hero != Hero.PATCHING) {
+                        Spacer(Modifier.height(28.dp))
+                        SectionLabel("More")
+                        Spacer(Modifier.height(8.dp))
+                        GhostRow(
+                            "Sid",
+                            if (vm.savedGeminiKey != null) {
+                                "Cloud Gemini · ${vm.savedGeminiModel ?: "gemini-flash-latest"}"
+                            } else {
+                                "Off"
+                            },
+                            { showSid = true },
+                        )
+                        GhostRow(
+                            "Saved keys",
+                            "License key and token, encrypted on this phone",
+                            { showKeys = true },
+                        )
+                        if (vm.originalLabel != null && vm.patchedActivityExists) {
+                            GhostRow(
+                                "Revert to original Cider",
+                                "Saved: ${vm.originalLabel}",
+                                { vm.requestRevert() },
+                                enabled = !vm.busy && !vm.signingIn,
+                            )
+                        }
+                        Spacer(Modifier.height(12.dp))
+                    }
+                }
+
+                // Pinned outside the scroll area so the buttons never scroll away.
+                AnimatedContent(
+                    targetState = hero,
+                    transitionSpec = {
+                        fadeIn(motion.fade(220, delayMs = 60)) togetherWith fadeOut(motion.fade(120)) using
+                            SizeTransform(clip = false) { _, _ -> motion.settle() }
+                    },
+                    label = "heroActions",
+                ) { h ->
+                    HeroActions(
+                        h, vm, state, working, pageBackdrop,
+                        onPick = { pickApk.launch(APK_MIME_TYPES) },
+                        onSave = { saveApk.launch(vm.suggestedFileName) },
+                    )
+                }
+            }
+        }
+
+        // Sheets last so their BackHandlers win; imePadding keeps fields above the keyboard.
+        Box(Modifier.fillMaxSize().imePadding()) {
+            SettingsSheet(sheetBackdrop, showSettings, vm) { showSettings = false }
+            SidSheet(sheetBackdrop, showSid, vm) { showSid = false }
+            KeysSheet(sheetBackdrop, showKeys, vm) { showKeys = false }
+        }
+
+        ConfirmDialog(
+            visible = vm.confirmRevert,
+            title = "Revert to original Cider?",
+            message = "This uninstalls the patched Cider and reinstalls ${vm.originalLabel.orEmpty()}. " +
+                "Cider's data is deleted, so you'll sign in again afterwards.",
+            confirmLabel = "Revert",
+            destructive = true,
+            onConfirm = vm::confirmRevertAndInstall,
+            onDismiss = vm::dismissRevert,
+            confirmLoading = vm.reverting,
+        )
+        ConfirmDialog(
+            visible = vm.confirmUninstall,
+            title = "Replace installed Cider?",
+            message = "Installed Cider is signed with a different key. It must be uninstalled first — " +
+                "this deletes its data and you'll sign in with your token again." +
+                if (vm.installMethod == InstallMethod.SYSTEM) {
+                    "\n\nAndroid will ask you to confirm the uninstall, then the install."
+                } else {
+                    ""
+                },
+            confirmLabel = "Uninstall & install",
+            destructive = true,
+            onConfirm = vm::confirmUninstallAndInstall,
+            onDismiss = vm::dismissUninstall,
+        )
+        // Keep the last outcome so the text doesn't blank while the dialog fades out.
+        val lastOutcome = remember { arrayOfNulls<SignInOutcome>(1) }
+        vm.signInOutcome?.let { lastOutcome[0] = it }
+        val outcome = lastOutcome[0]
+        if (outcome != null) {
+            val copy = outcomeCopy(outcome)
+            ConfirmDialog(
+                visible = vm.signInOutcome != null,
+                title = copy.title,
+                message = copy.body,
+                confirmLabel = if (copy.offerOpen) "Open Cider" else "OK",
+                onConfirm = if (copy.offerOpen) {
+                    { vm.openCider(); vm.dismissSignInOutcome() }
+                } else {
+                    vm::dismissSignInOutcome
+                },
+                onDismiss = vm::dismissSignInOutcome,
+                dismissLabel = if (copy.offerOpen) "Close" else null,
             )
         }
     }
 }
 
+// ---- Hero ------------------------------------------------------------------------------------
+
+private class HeroCopy(
+    val eyebrow: String,
+    val title: String,
+    val body: String? = null,
+    val bodyIsError: Boolean = false,
+    val badge: Boolean = false,
+)
+
+private fun heroCopy(hero: Hero, state: PatchState): HeroCopy = when (hero) {
+    Hero.NEEDS_APK -> HeroCopy("STEP 1 OF 3", "Patch Cider", "Cider isn't installed. Choose a Cider APK file to patch.")
+    Hero.PATCH -> HeroCopy(
+        "STEP 1 OF 3", "Patch Cider",
+        "Adds token sign-in and cloud Sid to the Cider installed on this phone.",
+    )
+    Hero.READY -> HeroCopy("STEP 1 OF 3", "Ready to patch", (state as? PatchState.Ready)?.label)
+    Hero.PATCHING -> HeroCopy("STEP 1 OF 3", "Patching…")
+    Hero.FAILED -> HeroCopy(
+        "STEP 1 OF 3", "Patching failed",
+        (state as? PatchState.Failed)?.message, bodyIsError = true,
+    )
+    Hero.INSTALL -> HeroCopy(
+        "STEP 2 OF 3", "Patched APK ready",
+        "Install it to replace the Cider on this phone.", badge = true,
+    )
+    Hero.SIGN_IN -> HeroCopy(
+        "STEP 3 OF 3", "Sign in",
+        "Sign in to your Cider account once so Cider can check your token with Apple, " +
+            "then paste your Music-User-Token.",
+    )
+    Hero.SIGNED_IN -> HeroCopy("ALL SET", "You're signed in", "Cider accepted your token.", badge = true)
+}
+
 @Composable
-private fun ErrorHint(text: String) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.errorContainer)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(Icons.Rounded.ErrorOutline, null, tint = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.size(20.dp))
-        Spacer(Modifier.width(10.dp))
-        Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
+private fun HeroBlock(hero: Hero, state: PatchState, vm: PatchViewModel, pageBackdrop: Backdrop) {
+    val colors = Prism.colors
+    val copy = heroCopy(hero, state)
+    Column(Modifier.fillMaxWidth()) {
+        if (copy.badge) {
+            Box(
+                Modifier
+                    .size(56.dp)
+                    .background(Prism.accent.copy(alpha = colors.accentAlpha(0.85f)), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                PrismIcon(PrismIcons.Check, null, size = 28.dp, tint = Prism.onAccent)
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+        PrismText(
+            copy.eyebrow,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = colors.subText,
+            letterSpacing = 1.sp,
+        )
+        Spacer(Modifier.height(6.dp))
+        PrismText(copy.title, fontSize = 34.sp, fontWeight = FontWeight.Light)
+        if (copy.body != null) {
+            Spacer(Modifier.height(8.dp))
+            PrismText(copy.body, fontSize = 16.sp, color = if (copy.bodyIsError) colors.error else colors.subText)
+        }
+        Spacer(Modifier.height(20.dp))
+        when (hero) {
+            Hero.PATCHING -> {
+                val p = state as? PatchState.Patching
+                PatchProgress(p?.step, p?.symbols ?: 0)
+            }
+            Hero.FAILED -> {
+                val log = (state as? PatchState.Failed)?.log.orEmpty()
+                if (log.isNotEmpty()) LogDetails(log)
+            }
+            Hero.INSTALL -> {
+                val log = (state as? PatchState.Done)?.log.orEmpty()
+                val warnings = buildList {
+                    if (vm.installMethod == InstallMethod.SHIZUKU && !vm.shizukuRunning) add(ShizukuInstaller.NOT_RUNNING)
+                    if (vm.advanced && vm.signerMismatch) {
+                        add("Uninstall the current Cider before installing a saved copy of this file.")
+                    }
+                    log.firstOrNull { it.startsWith(CiderPatcher.SID_LOG_SKIPPED_PREFIX) }?.let { add(it) }
+                }
+                if (warnings.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { warnings.forEach { Warning(it) } }
+                    Spacer(Modifier.height(12.dp))
+                }
+                if (log.isNotEmpty()) LogDetails(log)
+            }
+            Hero.SIGN_IN -> TokenField(vm, pageBackdrop)
+            else -> Unit
+        }
     }
 }
 
-/** Optional encrypted storage for the license key and token, with one-tap copy. */
 @Composable
-private fun SavedKeysCard(savedLicense: String?, savedToken: String?, onSave: (String, String) -> Unit) {
-    var license by rememberSaveable(savedLicense) { mutableStateOf(savedLicense.orEmpty()) }
-    var token by rememberSaveable(savedToken) { mutableStateOf(savedToken.orEmpty()) }
-    val changed = license.trim() != savedLicense.orEmpty() || token.trim() != savedToken.orEmpty()
-    val hasSaved = savedLicense != null || savedToken != null
-    SectionCard(number = null, title = "Saved keys", icon = Icons.Rounded.Lock) {
-        Hint(
-            Icons.Rounded.Info,
-            "Optional. Keep your Cider license key and Music-User-Token here to copy them quickly. " +
-                "They're encrypted and stay on this phone.",
-        )
-        SecretField("Cider license key", license) { license = it }
-        SecretField("Music-User-Token", token) { token = it }
-        @OptIn(ExperimentalLayoutApi::class)
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+private fun Warning(text: String) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
+        PrismIcon(PrismIcons.Alert, null, modifier = Modifier.padding(top = 2.dp), size = 16.dp, tint = Prism.colors.error)
+        PrismText(text, fontSize = 14.sp)
+    }
+}
+
+@Composable
+private fun TokenField(vm: PatchViewModel, backdrop: Backdrop) {
+    val motion = LocalMotion.current
+    val tokenState = rememberSyncedFieldState(vm.token) { vm.token = it }
+    Column {
+        GlassPasswordField(tokenState, "Music-User-Token", Modifier.fillMaxWidth(), onSubmit = { vm.signIn() })
+        AnimatedVisibility(
+            visible = vm.savedToken != null && vm.token != vm.savedToken,
+            enter = expandVertically(motion.settle()) + fadeIn(motion.fade(220)),
+            exit = shrinkVertically(motion.exit(200)) + fadeOut(motion.fade(120)),
         ) {
-            SquircleButton("Save", onClick = { onSave(license, token) }, icon = Icons.Rounded.Save, enabled = changed)
-            AnimatedVisibility(hasSaved, enter = scaleIn(spring(dampingRatio = 0.5f)) + fadeIn(), exit = fadeOut()) {
-                SquircleButton(
-                    "Clear",
-                    onClick = {
-                        license = ""
-                        token = ""
-                        onSave("", "")
-                    },
-                    icon = Icons.Rounded.Delete,
-                    style = ButtonStyle.Outlined,
+            Column {
+                Spacer(Modifier.height(8.dp))
+                GlassButton(
+                    backdrop, "Use saved token", vm::useSavedToken,
+                    variant = ButtonVariant.Ghost, size = ButtonSize.Small,
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun SecretField(label: String, value: String, onValueChange: (String) -> Unit) {
-    val context = LocalContext.current
-    var visible by remember { mutableStateOf(false) }
-    var copied by remember { mutableStateOf(false) }
-    LaunchedEffect(copied) {
-        if (copied) {
-            delay(1500)
-            copied = false
-        }
-    }
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        singleLine = true,
-        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        shape = MaterialTheme.shapes.medium,
-        modifier = Modifier.fillMaxWidth(),
-        trailingIcon = {
-            Row {
-                SquircleIconButton(onClick = { visible = !visible }) {
-                    Icon(
-                        if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                        contentDescription = if (visible) "Hide" else "Show",
-                    )
-                }
-                SquircleIconButton(
-                    onClick = {
-                        copySensitive(context, label, value.trim())
-                        copied = true
-                    },
-                    enabled = value.isNotBlank(),
-                ) {
-                    AnimatedContent(
-                        targetState = copied,
-                        transitionSpec = { (scaleIn(spring(dampingRatio = 0.4f)) + fadeIn()) togetherWith (scaleOut() + fadeOut()) },
-                        label = "copyIcon",
-                    ) { done ->
-                        Icon(if (done) Icons.Rounded.Check else Icons.Rounded.ContentCopy, contentDescription = "Copy")
-                    }
-                }
-            }
-        },
-    )
-}
-
-/** Copies [text] and flags it sensitive so Android's clipboard preview hides it. */
-private fun copySensitive(context: Context, label: String, text: String) {
-    val clip = ClipData.newPlainText(label, text)
-    clip.description.extras = PersistableBundle().apply { putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true) }
-    context.getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)
-}
-
-@Composable
-private fun Hint(icon: ImageVector, text: String) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-        Spacer(Modifier.width(10.dp))
-        Text(text, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
 @Composable
 private fun LogDetails(lines: List<String>) {
+    val colors = Prism.colors
+    val motion = LocalMotion.current
     var expanded by rememberSaveable { mutableStateOf(false) }
-    val arrow by animateFloatAsState(if (expanded) 180f else 0f, spring(dampingRatio = 0.6f), label = "logArrow")
     Column {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.small)
-                .clickable { expanded = !expanded }
-                .padding(vertical = 8.dp, horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        GhostRow(
+            "Details", null, { expanded = !expanded },
+            trailingIcon = if (expanded) PrismIcons.ChevronUp else PrismIcons.ChevronDown,
+        )
+        AnimatedVisibility(
+            expanded,
+            enter = expandVertically(motion.settle()) + fadeIn(motion.fade(220)),
+            exit = shrinkVertically(motion.exit(200)) + fadeOut(motion.fade(120)),
         ) {
-            Text("Details", style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
-            Icon(Icons.Rounded.ExpandMore, null, modifier = Modifier.rotate(arrow))
-        }
-        AnimatedVisibility(expanded, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
             val listState = rememberLazyListState()
             LaunchedEffect(lines.size) {
                 if (lines.isNotEmpty()) listState.scrollToItem(lines.lastIndex)
             }
             LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxWidth()
+                Modifier
                     .heightIn(max = 260.dp)
-                    .clip(MaterialTheme.shapes.small)
-                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                    .fillMaxWidth()
+                    .clip(RoundedRectangle(14.dp))
+                    .background(colors.fillWeak)
                     .padding(10.dp),
+                state = listState,
             ) {
-                items(lines) { line -> Text(line, fontFamily = FontFamily.Monospace, fontSize = 11.sp) }
+                items(lines) { line ->
+                    BasicText(
+                        line,
+                        style = TextStyle(
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 11.sp,
+                            color = colors.subText,
+                        ),
+                    )
+                }
             }
         }
     }
 }
 
-/** Fades and slides a block down into place, staggered by [index]. */
+// ---- Pinned actions --------------------------------------------------------------------------
+
 @Composable
-private fun EnterFromTop(index: Int, content: @Composable () -> Unit) {
-    val visible = remember { MutableTransitionState(false).apply { targetState = true } }
-    AnimatedVisibility(
-        visibleState = visible,
-        enter = fadeIn(tween(400, delayMillis = index * 80)) +
-            slideInVertically(tween(500, delayMillis = index * 80, easing = FastOutSlowInEasing)) { -it / 4 },
-    ) { content() }
+private fun HeroActions(
+    hero: Hero,
+    vm: PatchViewModel,
+    state: PatchState,
+    working: Boolean,
+    backdrop: Backdrop,
+    onPick: () -> Unit,
+    onSave: () -> Unit,
+) {
+    @Composable
+    fun Primary(text: String, onClick: () -> Unit, enabled: Boolean = true, loading: Boolean = false) {
+        GlassButton(
+            backdrop, text, onClick, Modifier.fillMaxWidth(),
+            variant = ButtonVariant.Primary, size = ButtonSize.Large, enabled = enabled, loading = loading,
+        )
+    }
+
+    @Composable
+    fun Secondary(
+        text: String,
+        onClick: () -> Unit,
+        enabled: Boolean = true,
+        trailingIcon: Int? = null,
+    ) {
+        GlassButton(
+            backdrop, text, onClick, Modifier.fillMaxWidth(),
+            variant = ButtonVariant.Ghost, enabled = enabled, trailingIcon = trailingIcon,
+        )
+    }
+
+    Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        val status = vm.message
+        if (vm.busy && status != null) {
+            PrismText(status, fontSize = 14.sp, color = Prism.colors.subText)
+        }
+        when (hero) {
+            Hero.NEEDS_APK -> Primary("Choose APK file", onPick, enabled = !working)
+            Hero.PATCH -> {
+                Primary("Patch Cider", vm::patchInstalledCider, enabled = !working)
+                if (vm.advanced) Secondary("Choose APK file", onPick, enabled = !working)
+            }
+            Hero.READY -> {
+                Primary("Patch", vm::patch)
+                Secondary("Cancel", vm::reset)
+            }
+            Hero.PATCHING -> Primary("Patching…", {}, enabled = false, loading = true)
+            Hero.FAILED -> Primary("Try again", vm::reset)
+            Hero.INSTALL -> {
+                Primary(
+                    if (vm.installMethod == InstallMethod.SHIZUKU) "Install via Shizuku" else "Install",
+                    vm::install,
+                    enabled = !working,
+                    loading = vm.busy,
+                )
+                if (vm.advanced) Secondary("Save APK", onSave, enabled = !working)
+                Secondary("Start over", vm::reset, enabled = !working)
+            }
+            Hero.SIGN_IN -> {
+                Primary(
+                    "Sign in to Cider",
+                    vm::signIn,
+                    enabled = vm.signingIn || (vm.token.isNotBlank() && vm.patchedActivityExists && !vm.busy),
+                    loading = vm.signingIn,
+                )
+                Secondary(
+                    "Open Cider", { vm.openCider() },
+                    enabled = vm.ciderInstalled, trailingIcon = PrismIcons.ArrowRight,
+                )
+            }
+            Hero.SIGNED_IN -> {
+                Primary("Open Cider", { vm.openCider() })
+                Secondary("Sign in with another token", vm::signInAgain)
+            }
+        }
+    }
+}
+
+// ---- Sign-in outcome copy --------------------------------------------------------------------
+
+private class OutcomeCopy(val title: String, val body: String, val offerOpen: Boolean)
+
+private fun outcomeCopy(outcome: SignInOutcome): OutcomeCopy = when (outcome) {
+    SignInOutcome.SUCCESS -> OutcomeCopy(
+        "You're signed in",
+        "Cider accepted your token and restarted with your library.",
+        offerOpen = true,
+    )
+    SignInOutcome.INVALID -> OutcomeCopy(
+        "Token rejected",
+        "Apple says this Music-User-Token isn't valid or has expired. Copy a fresh media-user-token " +
+            "from a signed-in music.apple.com session (or Cider desktop) and try again.",
+        offerOpen = false,
+    )
+    SignInOutcome.UNVERIFIED -> OutcomeCopy(
+        "Couldn't check your token",
+        "Cider couldn't ask Apple about your token. This usually means Cider isn't signed in to your " +
+            "Cider account yet, which it needs to talk to Apple Music.\n\nOpen Cider, sign in to your Cider " +
+            "account, then come back and tap Sign in to Cider again. This can also happen when you're offline.",
+        offerOpen = true,
+    )
+    SignInOutcome.CANCELLED -> OutcomeCopy(
+        "Sign-in didn't finish",
+        "Cider closed before it could report back. Try again. If it keeps happening, make sure a battery " +
+            "saver or app killer (like Brevent) isn't stopping Cider.",
+        offerOpen = false,
+    )
+    SignInOutcome.NOT_INSTALLED -> OutcomeCopy(
+        "Patched Cider isn't installed",
+        "Install the patched Cider first, then sign in.",
+        offerOpen = false,
+    )
+}
+
+// ---- Sheets ----------------------------------------------------------------------------------
+
+@Composable
+private fun SheetTitle(text: String) {
+    PrismText(text, fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
+    Spacer(Modifier.height(16.dp))
 }
 
 @Composable
-private fun SignInOutcomeDialog(outcome: SignInOutcome, onOpenCider: () -> Unit, onDismiss: () -> Unit) {
-    data class Copy(val icon: ImageVector, val title: String, val body: String, val offerOpen: Boolean)
-    val copy = when (outcome) {
-        SignInOutcome.SUCCESS -> Copy(
-            Icons.Rounded.CheckCircle,
-            "You're signed in",
-            "Cider accepted your token and restarted with your library.",
-            offerOpen = true,
-        )
-        SignInOutcome.INVALID -> Copy(
-            Icons.Rounded.ErrorOutline,
-            "Token rejected",
-            "Apple says this Music-User-Token isn't valid or has expired. Copy a fresh media-user-token " +
-                "from a signed-in music.apple.com session (or Cider desktop) and try again.",
-            offerOpen = false,
-        )
-        SignInOutcome.UNVERIFIED -> Copy(
-            Icons.Rounded.Info,
-            "Couldn't check your token",
-            "Cider couldn't ask Apple about your token. This usually means Cider isn't signed in to your " +
-                "Cider account yet, which it needs to talk to Apple Music.\n\nOpen Cider, sign in to your Cider " +
-                "account, then come back and tap Sign in to Cider again. This can also happen when you're offline.",
-            offerOpen = true,
-        )
-        SignInOutcome.CANCELLED -> Copy(
-            Icons.Rounded.Warning,
-            "Sign-in didn't finish",
-            "Cider closed before it could report back. Try again. If it keeps happening, make sure a battery " +
-                "saver or app killer (like Brevent) isn't stopping Cider.",
-            offerOpen = false,
-        )
-        SignInOutcome.NOT_INSTALLED -> Copy(
-            Icons.Rounded.Warning,
-            "Patched Cider isn't installed",
-            "Install the patched Cider first, then sign in.",
-            offerOpen = false,
-        )
+private fun SettingRow(label: String, caption: String?, control: @Composable () -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f).padding(end = 16.dp)) {
+            PrismText(label, fontSize = 18.sp)
+            if (caption != null) PrismText(caption, fontSize = 13.sp, color = Prism.colors.subText)
+        }
+        control()
     }
-    val iconScale = remember { androidx.compose.animation.core.Animatable(0.4f) }
-    LaunchedEffect(outcome) {
-        iconScale.animateTo(1f, spring(dampingRatio = 0.35f, stiffness = Spring.StiffnessMediumLow))
-    }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                copy.icon,
-                null,
-                modifier = Modifier
-                    .size(36.dp)
-                    .graphicsLayer {
-                        scaleX = iconScale.value
-                        scaleY = iconScale.value
-                    },
-                tint = if (outcome == SignInOutcome.INVALID) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-            )
-        },
-        title = { Text(copy.title) },
-        text = { Text(copy.body) },
-        confirmButton = {
-            if (copy.offerOpen) {
-                TextButton(onClick = { onOpenCider(); onDismiss() }, shape = PillSquircle) { Text("Open Cider") }
-            } else {
-                TextButton(onClick = onDismiss, shape = PillSquircle) { Text("OK") }
+}
+
+@Composable
+private fun BoxScope.SettingsSheet(backdrop: Backdrop, visible: Boolean, vm: PatchViewModel, onDismiss: () -> Unit) {
+    SheetOverlay(backdrop, visible, onDismiss, heightFraction = 0.7f) { surface ->
+        val motion = LocalMotion.current
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            SheetTitle("Settings")
+            SettingRow("Advanced options", "Choose an APK file and save the patched APK") {
+                GlassSwitch(vm.advanced, vm::updateAdvanced, contentDescription = "Advanced options")
             }
-        },
-        dismissButton = if (copy.offerOpen) {
-            { TextButton(onClick = onDismiss, shape = PillSquircle) { Text("Close") } }
-        } else {
-            null
-        },
-    )
+            AnimatedVisibility(
+                visible = vm.advanced,
+                enter = expandVertically(motion.settle()) + fadeIn(motion.fade(220)),
+                exit = shrinkVertically(motion.exit(200)) + fadeOut(motion.fade(120)),
+            ) {
+                Column {
+                    Spacer(Modifier.height(28.dp))
+                    PrismText("Install with", fontSize = 18.sp)
+                    Spacer(Modifier.height(10.dp))
+                    GlassSegmented(
+                        listOf("Shizuku", "Android installer"),
+                        selectedIndex = vm.installMethod.ordinal,
+                        onSelect = { vm.updateInstallMethod(InstallMethod.entries[it]) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    PrismText(
+                        if (vm.installMethod == InstallMethod.SHIZUKU) {
+                            "Installs silently, no prompts"
+                        } else {
+                            "Asks you to confirm, like opening an APK file"
+                        },
+                        fontSize = 13.sp,
+                        color = Prism.colors.subText,
+                    )
+                }
+            }
+            Spacer(Modifier.height(28.dp))
+            SettingRow(
+                "Open Cider after install",
+                "Copies your saved license key and opens Cider after a Shizuku install",
+            ) {
+                GlassSwitch(
+                    vm.autoOpenAfterInstall,
+                    vm::updateAutoOpenAfterInstall,
+                    contentDescription = "Open Cider after install",
+                )
+            }
+            Spacer(Modifier.height(28.dp))
+            SettingRow("Haptics", null) {
+                GlassSwitch(vm.ui.haptics, { v -> vm.updateUi { it.copy(haptics = v) } }, contentDescription = "Haptics")
+            }
+            Spacer(Modifier.height(28.dp))
+            PrismText("Accent colour", fontSize = 18.sp)
+            Spacer(Modifier.height(10.dp))
+            AccentPicker(surface, Color(vm.ui.accent)) { c -> vm.updateUi { it.copy(accent = c.toArgb()) } }
+            Spacer(Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.SidSheet(backdrop: Backdrop, visible: Boolean, vm: PatchViewModel, onDismiss: () -> Unit) {
+    SheetOverlay(backdrop, visible, onDismiss, heightFraction = 0.8f) { surface ->
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            SheetTitle("Sid")
+            PrismText(
+                "Sid needs Gemini Nano, which this phone may not have. Add a Google AI Studio API key and Sid uses " +
+                    "Gemini in the cloud instead. What you ask Sid is sent to Google. Leave the key blank and send to turn it off.",
+                fontSize = 14.sp,
+                color = Prism.colors.subText,
+            )
+            Spacer(Modifier.height(20.dp))
+            key(vm.savedGeminiKey, vm.savedGeminiModel) {
+                val keyState = rememberTextFieldState(vm.savedGeminiKey.orEmpty())
+                val modelState = rememberTextFieldState(vm.savedGeminiModel.orEmpty())
+                val model = modelState.text.toString()
+                val modelValid = model.isBlank() || model.trim().matches(Regex("[A-Za-z0-9._-]+"))
+                SecretField(surface, "Gemini API key", keyState)
+                Spacer(Modifier.height(12.dp))
+                GlassTextField(
+                    modelState,
+                    "Model id",
+                    Modifier.fillMaxWidth(),
+                    placeholder = "gemini-flash-latest",
+                    error = if (modelValid) null else "Letters, digits, '.', '_' and '-' only",
+                )
+                Spacer(Modifier.height(24.dp))
+                if (!vm.patchedActivityExists) {
+                    PrismText("Install the patched Cider first.", fontSize = 13.sp, color = Prism.colors.subText)
+                    Spacer(Modifier.height(8.dp))
+                }
+                GlassButton(
+                    surface,
+                    if (vm.sendingSidConfig) "Sending…" else "Save & send to Cider",
+                    { vm.sendSidConfig(keyState.text.toString(), modelState.text.toString()) },
+                    Modifier.fillMaxWidth(),
+                    variant = ButtonVariant.Primary,
+                    size = ButtonSize.Large,
+                    loading = vm.sendingSidConfig,
+                    enabled = vm.patchedActivityExists && !vm.sendingSidConfig && modelValid,
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.KeysSheet(backdrop: Backdrop, visible: Boolean, vm: PatchViewModel, onDismiss: () -> Unit) {
+    SheetOverlay(backdrop, visible, onDismiss, heightFraction = 0.7f) { surface ->
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            SheetTitle("Saved keys")
+            PrismText(
+                "Optional. Keys are encrypted and stay on this phone.",
+                fontSize = 14.sp,
+                color = Prism.colors.subText,
+            )
+            Spacer(Modifier.height(20.dp))
+            key(vm.savedLicenseKey, vm.savedToken) {
+                val license = rememberTextFieldState(vm.savedLicenseKey.orEmpty())
+                val token = rememberTextFieldState(vm.savedToken.orEmpty())
+                SecretField(surface, "Cider license key", license)
+                Spacer(Modifier.height(12.dp))
+                SecretField(surface, "Music-User-Token", token)
+                Spacer(Modifier.height(24.dp))
+                val changed = license.text.toString().trim() != vm.savedLicenseKey.orEmpty() ||
+                    token.text.toString().trim() != vm.savedToken.orEmpty()
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    GlassButton(
+                        surface, "Save",
+                        { vm.saveKeys(license.text.toString(), token.text.toString()) },
+                        variant = ButtonVariant.Primary,
+                        enabled = changed,
+                    )
+                    if (vm.savedLicenseKey != null || vm.savedToken != null) {
+                        GlassButton(
+                            surface, "Clear",
+                            {
+                                license.clearText()
+                                token.clearText()
+                                vm.saveKeys("", "")
+                            },
+                            variant = ButtonVariant.Outlined,
+                            leadingIcon = PrismIcons.Trash,
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+    }
 }

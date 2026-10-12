@@ -11,23 +11,34 @@ object ApkWriter {
     private val DEX_NAME = Regex("""^classes(\d*)\.dex$""")
 
     /**
-     * Copies [input] to [out] in original entry order, dropping v1 signature files, swapping in [manifest],
-     * and appending [newDex] as the next `classesN.dex`. STORED entries stay STORED.
+     * Copies [input] to [out] in original entry order, dropping v1 signature files and swapping in [manifest].
+     * When [frontDex] is non-null it becomes `classes.dex` (first definition wins at class load) and every
+     * original `classesN.dex` shifts to `classes{N+1}.dex`. Each of [extraDexes] is then appended as the next
+     * `classesN.dex`. STORED entries stay STORED.
      */
-    fun writeUnsigned(input: File, out: File, manifest: ByteArray, newDex: ByteArray) {
+    fun writeUnsigned(input: File, out: File, manifest: ByteArray, frontDex: ByteArray?, extraDexes: List<ByteArray>) {
         ZipFile(input).use { zip ->
+            var highestDex = 0
+            for (src in zip.entries()) {
+                DEX_NAME.matchEntire(src.name)?.let { m ->
+                    highestDex = maxOf(highestDex, m.groupValues[1].ifEmpty { "1" }.toInt())
+                }
+            }
+            if (frontDex != null) highestDex++
             ZipOutputStream(out.outputStream().buffered()).use { zos ->
-                var highestDex = 0
+                if (frontDex != null) putEntry(zos, "classes.dex", frontDex, ZipEntry.STORED, System.currentTimeMillis())
                 for (src in zip.entries()) {
-                    val name = src.name
-                    if (OLD_SIGNATURE.matches(name)) continue
-                    DEX_NAME.matchEntire(name)?.let { m ->
-                        highestDex = maxOf(highestDex, m.groupValues[1].ifEmpty { "1" }.toInt())
-                    }
-                    if (name == "AndroidManifest.xml") {
-                        putEntry(zos, name, manifest, src.method, src.time)
+                    val srcName = src.name
+                    if (OLD_SIGNATURE.matches(srcName)) continue
+                    if (srcName == "AndroidManifest.xml") {
+                        putEntry(zos, srcName, manifest, src.method, src.time)
                         continue
                     }
+                    val name = if (frontDex != null) {
+                        DEX_NAME.matchEntire(srcName)?.let { m ->
+                            "classes${m.groupValues[1].ifEmpty { "1" }.toInt() + 1}.dex"
+                        } ?: srcName
+                    } else srcName
                     val entry = ZipEntry(name).apply {
                         method = src.method
                         time = src.time
@@ -41,7 +52,9 @@ object ApkWriter {
                     zip.getInputStream(src).use { it.copyTo(zos) }
                     zos.closeEntry()
                 }
-                putEntry(zos, "classes${highestDex + 1}.dex", newDex, ZipEntry.STORED, System.currentTimeMillis())
+                extraDexes.forEachIndexed { i, dex ->
+                    putEntry(zos, "classes${highestDex + 1 + i}.dex", dex, ZipEntry.STORED, System.currentTimeMillis())
+                }
             }
         }
     }

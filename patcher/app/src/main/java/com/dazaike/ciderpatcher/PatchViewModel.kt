@@ -7,6 +7,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import com.dazaike.ciderpatcher.ui.copySensitive
+import com.dazaike.ciderpatcher.data.ThemeMode
+import com.dazaike.ciderpatcher.data.UiSettings
 import androidx.lifecycle.viewModelScope
 import com.dazaike.ciderpatcher.core.CiderPatcher
 import com.dazaike.ciderpatcher.core.PatchException
@@ -76,6 +79,33 @@ class PatchViewModel(app: Application) : AndroidViewModel(app) {
     /** Shows Choose APK and Save; persisted. */
     var advanced by mutableStateOf(prefs.getBoolean(KEY_ADVANCED, false))
         private set
+    /** After a Shizuku install: copy the saved license key and open Cider. Off by default; persisted. */
+    var autoOpenAfterInstall by mutableStateOf(prefs.getBoolean(KEY_AUTO_OPEN, false))
+        private set
+    /** Always dark; only the accent and haptics are user-tunable. Persisted in [prefs]. */
+    var ui by mutableStateOf(
+        UiSettings(
+            theme = ThemeMode.Dark,
+            accent = prefs.getInt(KEY_ACCENT, DEFAULT_ACCENT),
+            haptics = prefs.getBoolean(KEY_HAPTICS, true),
+        )
+    )
+        private set
+
+    fun updateUi(transform: (UiSettings) -> UiSettings) {
+        val next = transform(ui).copy(theme = ThemeMode.Dark)
+        ui = next
+        prefs.edit().putInt(KEY_ACCENT, next.accent).putBoolean(KEY_HAPTICS, next.haptics).apply()
+    }
+
+    /** The last sign-in this session was accepted; the journey shows "You're signed in". */
+    var signedIn by mutableStateOf(false)
+        private set
+
+    fun signInAgain() { signedIn = false }
+
+    /** The screen has shown [message] as a toast. */
+    fun consumeMessage() = showMessage(null)
     /** "<package> <version> (<code>)" of the saved original, or null if none is saved. */
     var originalLabel by mutableStateOf<String?>(null)
         private set
@@ -95,16 +125,28 @@ class PatchViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var savedToken by mutableStateOf<String?>(null)
         private set
+    var savedGeminiKey by mutableStateOf<String?>(null)
+        private set
+    var savedGeminiModel by mutableStateOf<String?>(null)
+        private set
+    /** Gemini key + model to hand to the patched Cider; the screen launches it for a result and clears this. */
+    var sidConfigRequest by mutableStateOf<Pair<String, String>?>(null)
+        private set
+    var sendingSidConfig by mutableStateOf(false)
+        private set
 
     init {
         Shizuku.addBinderReceivedListenerSticky(binderReceived)
         Shizuku.addBinderDeadListener(binderDead)
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                SecretStore.get(context, SecretStore.LICENSE_KEY) to SecretStore.get(context, SecretStore.MUSIC_USER_TOKEN)
-            }.let { (license, token) ->
+                listOf(SecretStore.LICENSE_KEY, SecretStore.MUSIC_USER_TOKEN, SecretStore.GEMINI_API_KEY, SecretStore.GEMINI_MODEL)
+                    .map { SecretStore.get(context, it) }
+            }.let { (license, token, geminiKey, geminiModel) ->
                 savedLicenseKey = license
                 savedToken = token
+                savedGeminiKey = geminiKey
+                savedGeminiModel = geminiModel
             }
         }
     }
@@ -157,6 +199,11 @@ class PatchViewModel(app: Application) : AndroidViewModel(app) {
         prefs.edit().putBoolean(KEY_ADVANCED, enabled).apply()
     }
 
+    fun updateAutoOpenAfterInstall(enabled: Boolean) {
+        autoOpenAfterInstall = enabled
+        prefs.edit().putBoolean(KEY_AUTO_OPEN, enabled).apply()
+    }
+
     fun updateInstallMethod(method: InstallMethod) {
         installMethod = method
         prefs.edit().putString(KEY_INSTALL_METHOD, method.name).apply()
@@ -189,7 +236,8 @@ class PatchViewModel(app: Application) : AndroidViewModel(app) {
         } ?: throw PatchException("Couldn't open the selected file.")
     }
 
-    fun useInstalledCider() = loadInput {
+    /** One tap: copies the installed Cider and patches it straight away. */
+    fun patchInstalledCider() = loadInput(thenPatch = true) {
         val info = CiderApp.installedInfo(context) ?: throw PatchException("Cider isn't installed.")
         if (!info.splitSourceDirs.isNullOrEmpty()) {
             throw PatchException("Installed Cider is a split install; choose an APK file instead")
@@ -197,7 +245,12 @@ class PatchViewModel(app: Application) : AndroidViewModel(app) {
         File(info.sourceDir).inputStream().use { input -> inputApk.outputStream().use { input.copyTo(it) } }
     }
 
-    private fun loadInput(copy: () -> Unit) {
+    /** Back to the start of the Patch tab. */
+    fun reset() {
+        if (_state.value !is PatchState.Patching) _state.value = PatchState.Idle
+    }
+
+    private fun loadInput(thenPatch: Boolean = false, copy: () -> Unit) {
         showMessage(null)
         viewModelScope.launch {
             _state.value = try {
@@ -211,6 +264,7 @@ class PatchViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: Exception) {
                 PatchState.Failed(describe(e), emptyList())
             }
+            if (thenPatch) patch()
         }
     }
 
@@ -304,8 +358,23 @@ class PatchViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 }
             }
+            if (output.contains("Success")) {
+                signedIn = false
+                patchedActivityExists = true   // we just installed our patched APK; refresh() in finally confirms
+                _state.value = PatchState.Idle
+            }
             when {
                 !output.contains("Success") -> showMessage(output, error = true)
+                // Opt-in: Shizuku installs run with the app in front, so put the license key on the clipboard and open Cider.
+                autoOpenAfterInstall && installMethod == InstallMethod.SHIZUKU -> {
+                    val license = savedLicenseKey
+                    if (license != null) copySensitive(context, "Cider license key", license)
+                    openCider()
+                    showMessage(
+                        (if (license != null) "Installed. License key copied. " else "Installed. ") +
+                            "Sign in to your Cider account, then come back and tap Sign in to Cider."
+                    )
+                }
                 // A fresh install has no Cider account sign-in, so Cider can't check the token yet.
                 uninstallFirst -> showMessage("Installed. Open Cider and sign in to your Cider account, then come back and tap Sign in to Cider.")
                 token.isNotBlank() -> {
@@ -344,6 +413,7 @@ class PatchViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 val output = installer.uninstallThenInstall(CiderPatcher.TARGET_PACKAGE, originalApk)
                 if (output.contains("Success")) {
+                    signedIn = false
                     showMessage("Original Cider restored. Update it as usual, then patch the new version here.")
                 } else {
                     showMessage(output, error = true)
@@ -381,11 +451,58 @@ class PatchViewModel(app: Application) : AndroidViewModel(app) {
             result == CiderPatcher.RESULT_UNVERIFIED -> SignInOutcome.UNVERIFIED
             else -> SignInOutcome.CANCELLED
         }
-        if (signInOutcome == SignInOutcome.SUCCESS) showMessage(null)
+        if (signInOutcome == SignInOutcome.SUCCESS) {
+            signedIn = true
+            showMessage(null)
+        }
     }
 
     fun dismissSignInOutcome() {
         signInOutcome = null
+    }
+
+    /** Stores the Gemini key and model on this phone (encrypted) and queues them for the patched Cider. A blank key turns cloud Sid off. */
+    fun sendSidConfig(apiKey: String, model: String) {
+        if (!(model.isBlank() || model.trim().matches(MODEL_ID))) {
+            showMessage("Model id may only contain letters, digits, '.', '_' and '-'.", error = true)
+            return
+        }
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    SecretStore.put(context, SecretStore.GEMINI_API_KEY, apiKey)
+                    SecretStore.put(context, SecretStore.GEMINI_MODEL, model)
+                }
+                savedGeminiKey = apiKey.trim().ifEmpty { null }
+                savedGeminiModel = model.trim().ifEmpty { null }
+                sidConfigRequest = apiKey to model
+            } catch (e: Exception) {
+                showMessage(describe(e), error = true)
+            }
+        }
+    }
+
+    /** The screen took [sidConfigRequest] and launched it. */
+    fun sidConfigLaunched() {
+        sidConfigRequest = null
+        sendingSidConfig = true
+    }
+
+    fun onSidConfigLaunchFailed() {
+        sendingSidConfig = false
+        showMessage("Patched Cider isn't installed.", error = true)
+    }
+
+    fun onSidConfigResult(resultCode: Int) {
+        sendingSidConfig = false
+        if (resultCode == Activity.RESULT_OK) {
+            showMessage(
+                if (savedGeminiKey == null) "Gemini key removed from Cider."
+                else "Gemini key sent to Cider. Close Cider from your recent apps and reopen it, then open Sid's settings."
+            )
+        } else {
+            showMessage("Cider didn't accept the key.", error = true)
+        }
     }
 
     /** Opens Cider normally. Returns false if it isn't installed. */
@@ -404,6 +521,11 @@ class PatchViewModel(app: Application) : AndroidViewModel(app) {
 
     private companion object {
         const val KEY_ADVANCED = "advanced"
+        const val KEY_AUTO_OPEN = "auto_open_after_install"
         const val KEY_INSTALL_METHOD = "install_method"
+        const val KEY_ACCENT = "accent"
+        const val KEY_HAPTICS = "haptics"
+        const val DEFAULT_ACCENT = 0xFFFF375F.toInt()
+        val MODEL_ID = Regex("[A-Za-z0-9._-]+")
     }
 }

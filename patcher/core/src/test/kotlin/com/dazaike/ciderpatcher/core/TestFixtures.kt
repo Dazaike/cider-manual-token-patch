@@ -35,6 +35,41 @@ object TestFixtures {
         "N_FUNCTION2_INVOKE" to "m",
     )
 
+    /** Cider v1.0.129 R8 names for the Sid cloud hooks (anchors listed in the Sid plan). */
+    val V129_SID: Map<String, String> = mapOf(
+        "T_KQ7" to "Lc/kq7;",
+        "N_KQ7_CAPS" to "l",
+        "N_KQ7_WARMUP" to "s",
+        "T_CONT_IMPL" to "Lc/gp1;",
+        "T_L0C" to "Lc/l0c;",
+        "T_TZB" to "Lc/tzb;",
+        "N_TZB_STATUS" to "a",
+        "N_L0C_STRUCTURED_OK" to "h",
+        "N_L0C_GENERATE" to "k",
+        "T_I23" to "Lc/i23;",
+        "T_KCLASS" to "Lc/q81;",
+        "T_MM8" to "Lc/mm8;",
+        "T_IN1" to "Lc/in1;",
+        "F_I23_TEMPERATURE" to "Lc/i23;->a:F",
+        "F_I23_CONTENTS" to "Lc/i23;->f:Ljava/util/List;",
+        "F_IN1_PARTS" to "Lc/in1;->a:Ljava/util/List;",
+        "F_MM8_TEXT" to "Lc/mm8;->a:Ljava/lang/String;",
+        "T_J23" to "Lc/j23;",
+        "M_J23_INIT" to "Lc/j23;-><init>(Ljava/util/ArrayList;)V",
+        "T_VT0" to "Lc/vt0;",
+        "M_VT0_INIT" to "Lc/vt0;-><init>(Ljava/lang/Integer;Ljava/lang/String;)V",
+        "T_E23" to "Lc/e23;",
+        "M_E23_INIT" to "Lc/e23;-><init>(ILjava/lang/String;Ljava/lang/Throwable;)V",
+        "T_TO7" to "Lc/to7;",
+        "M_TO7_INIT" to "Lc/to7;-><init>(Ljava/lang/Integer;ZZLjava/lang/Integer;)V",
+        "T_MLKIT_CONTEXT" to "Lc/p85;",
+        "N_MLKIT_CONTEXT_GET" to "c",
+        "N_MLKIT_CONTEXT_APP" to "b",
+        "M_SCHEMA_KEY" to "Lc/ubb;->c(Lc/q81;)Lc/v24;",
+        "M_SCHEMA_NODE" to "Lc/v24;->i()Lc/owa;",
+        "M_SCHEMA_TEXT" to "Lc/yzb;->a(Ljava/lang/String;Lc/owa;)Ljava/lang/String;",
+    )
+
     val GOLDEN_DIR = File("../../patch/smali/com/cidercollective/cider/auth/manual")
 
     /** Returns the APK named by [envVar], skipping the test when it isn't available. */

@@ -1,34 +1,26 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.compose")
 }
 
 android {
     namespace = "com.dazaike.ciderpatcher"
-    compileSdk = 34
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.dazaike.ciderpatcher"
         minSdk = 33
-        targetSdk = 34
-        versionCode = 3
-        versionName = "1.0.2"
+        targetSdk = 34          // unchanged on purpose: raising it changes platform behaviour
+        versionCode = 4
+        versionName = "1.0.3"
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-    }
+    buildTypes { release { isMinifyEnabled = false } }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
     }
 
     buildFeatures {
@@ -41,24 +33,23 @@ android {
         resources.excludes += listOf(
             "META-INF/versions/9/OSGI-INF/MANIFEST.MF",
             "META-INF/DEPENDENCIES",
+            "/META-INF/{AL2.0,LGPL2.1}",
         )
     }
 }
 
 dependencies {
     implementation(project(":core"))
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.activity:activity-compose:1.9.3")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
-    implementation("androidx.compose.ui:ui:1.7.5")
-    implementation("androidx.compose.ui:ui-graphics:1.7.5")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.7.5")
-    implementation("androidx.compose.foundation:foundation:1.7.5")
-    implementation("androidx.compose.material3:material3:1.3.1")
-    implementation("androidx.compose.material:material-icons-extended:1.7.5")
+    implementation("io.github.kyant0:backdrop:2.0.1")
+    implementation("io.github.kyant0:shapes:1.2.1")
+    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.activity:activity-compose:1.12.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
+    implementation("org.jetbrains.compose.runtime:runtime:1.12.1")
+    implementation("org.jetbrains.compose.foundation:foundation:1.12.1")
+    implementation("org.jetbrains.compose.animation:animation:1.12.1")
+    implementation("org.jetbrains.compose.ui:ui:1.12.1")
+    implementation("org.jetbrains.compose.ui:ui-graphics:1.12.1")
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.7.5")
 }
