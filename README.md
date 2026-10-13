@@ -5,7 +5,7 @@ Patch Cider for Android on the phone itself: manual Music-User-Token sign-in, pl
 [![Release](https://img.shields.io/github/v/release/Dazaike/cider-patcher)](https://github.com/Dazaike/cider-patcher/releases/latest) [![Changelog](https://img.shields.io/badge/changelog-CHANGELOG.md-blue)](CHANGELOG.md)
 
 Cider ([ciderapp/Cider-2](https://github.com/ciderapp/Cider-2)) is an
-Apple Music client. Its current application code is not open source. Its Android build's native "Sign in with Apple" flow goes
+Apple Music client. Its Android build's native "Sign in with Apple" flow goes
 through an in-app WebView OAuth handshake
 (`com.cidercollective.cider.auth.apple.AppleAuthorizeController` /
 `AppleAuthorizeHandshake`). On at least one build/device combination that
